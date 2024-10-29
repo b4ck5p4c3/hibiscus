@@ -1,0 +1,15 @@
+{
+  "$schema": "https://json.schemastore.org/tsconfig",
+  "_version": "2.0.0",
+  "extends": "@bksp/style-guide/typescript",
+  "compilerOptions": {
+    "rootDir": "src",
+    "lib": ["es2023"],
+    "target": "es2022",
+    "strict": true,
+    "esModuleInterop": true,
+    "skipLibCheck": true,
+    "moduleResolution": "Bundler"
+  },
+  "include": ["src/**/*.ts"]
+}
