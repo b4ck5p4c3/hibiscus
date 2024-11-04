@@ -3,6 +3,9 @@ services:
     # Build from Dockerfile as we don't provide pre-built images
     build: https://github.com/b4ck5p4c3/hibiscus.git
 
+    # Restart container on boot or in case of failure
+    restart: always
+
     # Mount the zones directory to persist data
     # If you run as non-root user (see directive below), make sure the directory is writable.
     # To adjust permissions, run `chown -R 1000:1000 /srv/dns/zones`
