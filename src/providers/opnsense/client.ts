@@ -1,8 +1,8 @@
-import ky, { KyInstance } from 'ky'
+import ky, { type KyInstance } from 'ky'
 import { z } from 'zod'
 
-import { Lease } from '../interface'
-import { Dhcpv4SearchLeaseResponse, OpnsenseLeaseType } from './interface'
+import { type Lease } from '../interface'
+import { type Dhcpv4SearchLeaseResponse, OpnsenseLeaseType } from './interface'
 
 const configSchema = z.object({
   OPNSENSE_API_KEY: z.string(),

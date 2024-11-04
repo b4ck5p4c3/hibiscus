@@ -42,11 +42,12 @@ services:
 
     # Read-only internal filesystem
     read_only: true
+    tmpfs:
+      - /tmp:size=64M,noexec,nosuid,nodev
 
     # Adjust security options
     security_opt:
       - no-new-privileges:true
-      - seccomp=default
 
     # Limit log size
     logging:

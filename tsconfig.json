@@ -1,16 +1,16 @@
 {
   "$schema": "https://json.schemastore.org/tsconfig",
   "_version": "2.0.0",
-  "extends": "@bksp/style-guide/typescript",
+  "extends": "@tsconfig/strictest",
   "compilerOptions": {
-    "rootDir": "src",
-    "lib": ["es2023"],
-    "target": "es2022",
-    "strict": true,
-    "esModuleInterop": true,
-    "skipLibCheck": true,
-    "moduleResolution": "Bundler",
-    "module": "ESNext",
+    "baseUrl": ".",
+    "lib": ["es2022"],
+		"target": "es2022",
+		"moduleDetection": "force",
+		"module": "preserve",
+		"resolveJsonModule": true,
+		"allowJs": true,
+		"verbatimModuleSyntax": true,
     "paths": {
       "@/*": ["./src/*"]
     }

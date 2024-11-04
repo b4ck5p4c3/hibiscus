@@ -1,7 +1,8 @@
-import { parseZoneConfigurations } from '@/parser'
-import { Zone, ZoneConfiguration } from '@/parser/interface'
+import type { Zone, ZoneConfiguration } from '@/parser/interface'
 
-import { Lease, Provider } from '../interface'
+import { parseZoneConfigurations } from '@/parser'
+
+import { type Lease, Provider } from '../interface'
 import { OpnsenseApiClient } from './client'
 
 export class OpnsenseProvider extends Provider {
