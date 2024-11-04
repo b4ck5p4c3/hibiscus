@@ -22,7 +22,7 @@
     "dev": "tsx --env-file-if-exists=.env src/index.ts | pino-pretty",
     "dev:check": "tsc --noEmit",
     "start": "tsx --env-file-if-exists=.env src/index.ts",
-    "prepare": "husky"
+    "postinstall": "node ./tools/skip-postinstall.mjs || husky"
   },
   "dependencies": {
     "dotenv": "^16.4.5",
