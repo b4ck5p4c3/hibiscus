@@ -1,0 +1,62 @@
+services:
+  hibiscus:
+    # Build from Dockerfile as we don't provide pre-built images
+    build: https://github.com/b4ck5p4c3/hibiscus.git
+
+    # Mount the zones directory to persist data
+    # If you run as non-root user (see directive below), make sure the directory is writable.
+    # To adjust permissions, run `chown -R 1000:1000 /srv/dns/zones`
+    volumes:
+      - /srv/dns/zones:/data
+
+    # Run as non-root user
+    user: 1000:1000
+
+    # Entire configuration is done via environment variables
+    environment:
+      # Refresh leases every minute
+      - REFRESH_INTERVAL=60
+
+      # OPNsense API
+      - OPNSENSE_URL=https://opnsense.local:8443/api
+      - OPNSENSE_API_KEY=pretty_long_base64_string
+      - OPNSENSE_API_SECRET=another_long_base64_string
+
+      # Our first zone (lan.example.net)
+      - ZONE_EXAMPLE_IFACE=lan
+      - ZONE_EXAMPLE_DOMAIN=lan.example.net.
+      - ZONE_EXAMPLE_SOA_PRIMARY=ns1.example.net.
+      - ZONE_EXAMPLE_SOA_RESPONSIBLE=admin.example.net.
+      - ZONE_EXAMPLE_NS=ns1.example.net.,ns2.example.net.
+
+      # Our second zone (guest.example.net)
+      - ZONE_GUEST_IFACE=guest
+      - ZONE_GUEST_DOMAIN=guest.example.net.
+      - ZONE_GUEST_SOA_PRIMARY=ns1.example.net.
+      - ZONE_GUEST_SOA_RESPONSIBLE=admin.example.net.
+      - ZONE_GUEST_NS=ns1.example.net.,ns2.example.net.
+
+    # Drop all capabilities
+    cap_drop:
+      - ALL
+
+    # Read-only internal filesystem
+    read_only: true
+
+    # Adjust security options
+    security_opt:
+      - no-new-privileges:true
+      - seccomp=default
+
+    # Limit log size
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "1"
+
+    # Limit RAM usage
+    deploy:
+      resources:
+        limits:
+          memory: "256m"

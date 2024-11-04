@@ -1,6 +1,7 @@
 FROM node:22-slim
 ENV PNPM_HOME="/pnpm"
 ENV PATH="$PNPM_HOME:$PATH"
+ENV OUT_DIR="/data"
 
 # Enable corepack, install deps via pnpm
 RUN corepack enable

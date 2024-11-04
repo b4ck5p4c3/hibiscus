@@ -9,7 +9,11 @@
     "strict": true,
     "esModuleInterop": true,
     "skipLibCheck": true,
-    "moduleResolution": "Bundler"
+    "moduleResolution": "Bundler",
+    "module": "ESNext",
+    "paths": {
+      "@/*": ["./src/*"]
+    }
   },
   "include": ["src/**/*.ts"]
 }

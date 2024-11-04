@@ -1,53 +1,41 @@
-# node-template
+# Hibiscus
 
-Template for Node.js projects.
+Hibiscus is a small Node.js daemon. It exports static DHCP leases from a OPNSense
+firewall and exports them as a RFC 1035 compliant DNS zone file.
 
 ## Setup
 
-1. Read this README once, and then delete everything.
-2. Write your own README describing your project and its specific details.
-3. In `package.json`, update the name, description, version, repository, and license details.
-4. Install dependencies with `pnpm install`.
-5. You're good to go! 🚀
-6. Check the `src/` directory to find useful basic utilities you might want to use.
+### OPNsense API
 
-## Summary
+You'll need an API token to access DHCP leases in OPNsense.
 
-1. We use TypeScript because it's cool. And [we don't transpile it](#why-not-transpile-typescript) unless necessary.
-2. We use ESLint with [neostandard](https://github.com/neostandard/neostandard) code style without exceptions.
-3. We don't use Prettier, as ESLint already does the job.
-4. We follow the [12 Factor App](https://12factor.net/) methodology.
-5. We use [pnpm](https://pnpm.io/) as package manager.
+1. Log in to your OPNsense firewall.
+2. Go to `System` -> `Access` -> `Users`.
+3. Create a new user. Do not set any permissions yet, but check a `Generate a scrambled password` box.
+4. Edit the user, and set `Effective Privileges` to `Status: DHCP leases` and `Status: DHCPv6 leases`.
+5. Save the user.
+6. On the same page, create a new API key for that user. It'll automatically download a credentials file.
 
-## License
+### Production
 
-Every piece of software made at B4CKSP4CE should be licensed appropriately.
-Every repository should contain a `LICENSE` file with the full text of the license.
+Use `docker-compose` to run Hibiscus in production.
+Please check the [example configuration](docker-compose.yml) for more information.
 
-As a rule of thumb, we use the:
+### Development
 
-1. Software: [Mozilla Public License 2.0](https://www.mozilla.org/en-US/MPL/2.0/)
-2. Hardware: [CERN Open Hardware Licence Version 2 - Strongly Reciprocal](https://ohwr.org/project/cernohl/-/wikis/Documents/CERN-OHL-version-2)
-3. Documentation: [Creative Commons Attribution-ShareAlike 4.0 International](https://creativecommons.org/licenses/by-sa/4.0/)
+For local development, you will need Node.js 22 or later, and pnpm.
 
-All three licenses are copyleft licenses, meaning any derivative work must be licensed under the same license.
+```sh
+# Clone repo
+git clone https://github.com/b4ck5p4c3/hibiscus
+cd hibiscus
 
-## FAQ
+# Install dependencies
+pnpm install
 
-### Why not transpile TypeScript?
+# Copy & adjust example configuration
+cp .env.example .env
 
-#### We don't have to
-
-Starting from Node.js 23, it [supports running TypeScript](https://nodejs.org/api/typescript.html) directly via type stripping.
-
-While native implementation is in early development with significant caveats, we use [tsx](https://github.com/privatenumber/tsx) instead.
-
-#### It adds complexity
-
-Transpiling TypeScript adds complexity and more opinionated decisions to the project.
-We don't bother ourselves with additional configurations. We don't want to introduce more opinionated choices, like what bundler to use.
-
-#### Overhead is negligible
-
-From the computing perspective, type stripping is astoundingly cheap. It's not even worth mentioning.
-It adds some overhead to the startup time, but it's not significant enough **for us** to be concerned.
+# Test
+pnpm run dev
+```
