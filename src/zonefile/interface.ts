@@ -7,7 +7,7 @@ export interface ZoneRecord {
   /**
    * Record type
    */
-  type: 'A'
+  type: 'A' | 'PTR'
 
   /**
    * Record value

@@ -29,8 +29,7 @@ async function execute (): Promise<void> {
   // Set up promises for each configured zone
   const promises = zones.map(async zone => {
     const zonefile = new Zonefile(zone)
-    const zoneLeases = leases.filter(l => l.zoneKey === zone.key)
-    zonefile.setLeases(zoneLeases)
+    zonefile.setLeases(leases.filter(lease => lease.interface === zone.interface))
 
     const status = await zonefile.commit()
     if (status === ZoneCommitStatus.Changed) {

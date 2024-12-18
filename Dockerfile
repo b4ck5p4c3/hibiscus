@@ -9,7 +9,7 @@ RUN bun install --frozen-lockfile
 
 ## Test & compile
 COPY . .
-RUN bun run test && bun run build
+RUN bun test && bun typecheck && bun run build
 
 # Release
 FROM gcr.io/distroless/base-debian12 AS release

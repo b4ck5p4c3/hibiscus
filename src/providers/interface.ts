@@ -13,6 +13,11 @@ export interface Lease {
   hostname: null | string
 
   /**
+   * Firewall zone associated with the lease.
+   */
+  interface: string
+
+  /**
    * The IP address that was leased.
    */
   ipv4: string
@@ -26,11 +31,13 @@ export interface Lease {
    * The type of the lease (either Dynamic or Static).
    */
   type: LeaseType
+}
 
-  /**
-   * The zone in which the lease was made.
-   */
-  zoneKey: string
+/**
+ * Represents a lease with known hostname.
+ */
+export interface LeaseWithHostname extends Lease {
+  hostname: string
 }
 
 /**
