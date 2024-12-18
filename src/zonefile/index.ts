@@ -70,7 +70,6 @@ export class Zonefile {
     // But if one of leases is static, we record only static ones
     for (const [mac, input] of index) {
       const staticLeases = input.filter(lease => lease.type === LeaseType.Static)
-      console.log(staticLeases)
       for (const lease of staticLeases.length ? staticLeases : input) {
         this.records.push({
           name: mac.toLowerCase().replaceAll(':', '-'),
