@@ -1,7 +1,7 @@
 import { resolve } from 'path'
 import { z } from 'zod'
 
-import type { Zone } from './interface'
+import { type Zone, ZoneType } from './interface'
 
 /**
  * Declare a RecordName type with simple sanity check
@@ -37,6 +37,7 @@ function parseZoneConfiguration (key: string): Zone {
   shape[`ZONE_${key}_SOA_PRIMARY`] = RecordName
   shape[`ZONE_${key}_SOA_RESPONSIBLE`] = RecordName
   shape[`ZONE_${key}_NS`] = CommaSeparatedRecordNames
+  shape[`ZONE_${key}_TYPE`] = z.nativeEnum(ZoneType)
 
   const result = z.object(shape).parse(process.env)
   const outFile = resolve(
@@ -55,6 +56,7 @@ function parseZoneConfiguration (key: string): Zone {
       primaryNs: result[`ZONE_${key}_SOA_PRIMARY`]
     },
     ttl: process.env['ZONE_TTL'] ? parseInt(process.env['ZONE_TTL']) : 300,
+    type: result[`ZONE_${key}_TYPE`],
   }
 }
 

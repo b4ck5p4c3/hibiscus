@@ -1,9 +1,15 @@
+export enum ZoneType {
+  Dynamic = 'dynamic',
+  DynamicWithMac = 'dynamic-with-mac',
+  Static = 'static',
+}
+
 /**
  * Configuration of a DNS zone.
  */
 export interface Zone {
   /**
-   * DNS zone linked to this configuration.
+   * Zone linked to this configuration.
    */
   domain: string;
 
@@ -46,6 +52,11 @@ export interface Zone {
    * Default zone TTL
    */
   ttl: number;
+
+  /**
+   * Type of the zone.
+   */
+  type: ZoneType;
 }
 
 /**

@@ -50,7 +50,7 @@ export interface OpnsenseLease {
   readonly cltt?: number;
   readonly descr: string;
   readonly ends: string;
-  readonly hostname: string;
+  readonly hostname?: string;
   readonly if: PhysicalInterface;
   readonly if_descr: FirewallInterface;
   readonly mac: string;

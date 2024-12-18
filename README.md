@@ -1,7 +1,8 @@
 # Hibiscus
 
-Hibiscus is a small Node.js daemon. It exports static DHCP leases from a OPNSense
-firewall and exports them as a RFC 1035 compliant DNS zone file.
+[![Made with Bun](https://img.shields.io/badge/Made%20with%20Bun-f471b5?logo=bun&style=for-the-badge)](https://bun.sh)
+
+Hibiscus exports DHCPv4 leases from OPNsense to RFC1035-compliant zone files.
 
 ## Setup
 
@@ -21,21 +22,26 @@ You'll need an API token to access DHCP leases in OPNsense.
 Use `docker-compose` to run Hibiscus in production.
 Please check the [example configuration](docker-compose.yml) for more information.
 
+See [.env.example](.env.example) for a full list of configuration options.
+
 ### Development
 
-For local development, you will need Node.js 22 or later, and pnpm.
+For local development, you will need Bun.
 
 ```sh
+# Install Bun if not yet
+curl -fsSL https://bun.sh/install | bash
+
 # Clone repo
 git clone https://github.com/b4ck5p4c3/hibiscus
 cd hibiscus
 
-# Install dependencies
-pnpm install
+# Install deps
+bun install
 
 # Copy & adjust example configuration
 cp .env.example .env
 
-# Test
-pnpm run dev
+# Go!
+bun run dev
 ```

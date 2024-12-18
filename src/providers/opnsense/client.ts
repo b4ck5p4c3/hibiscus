@@ -1,8 +1,7 @@
 import ky, { type KyInstance } from 'ky'
 import { z } from 'zod'
 
-import { type Lease } from '../interface'
-import { type Dhcpv4SearchLeaseResponse, OpnsenseLeaseType } from './interface'
+import { type Dhcpv4SearchLeaseResponse } from './interface'
 
 const configSchema = z.object({
   OPNSENSE_API_KEY: z.string(),
@@ -42,20 +41,9 @@ export class OpnsenseApiClient {
     }
   }
 
-  async getLeases (zone: string): Promise<Lease[]> {
-    const res = await this.client
+  async getLeases (): Promise<Dhcpv4SearchLeaseResponse> {
+    return this.client
       .get('dhcpv4/leases/searchLease')
       .json<Dhcpv4SearchLeaseResponse>()
-
-    // Filter out: static leases for a given interface, which do have a hostname set
-    const leases = res.rows
-      .filter(lease =>
-        lease.if_descr === zone &&
-        lease.type === OpnsenseLeaseType.Static &&
-        lease.hostname.length > 0
-      )
-      .map<Lease>(lease => ({ hostname: lease.hostname, ipv4: lease.address }))
-
-    return leases
   }
 }

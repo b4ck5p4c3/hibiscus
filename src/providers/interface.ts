@@ -1,3 +1,8 @@
+export enum LeaseType {
+  Dynamic = 'dynamic',
+  Static = 'static'
+}
+
 /**
  * Represents a lease of an IP address.
  */
@@ -5,12 +10,27 @@ export interface Lease {
   /**
    * The hostname set for the lease.
    */
-  hostname: string
+  hostname: null | string
 
   /**
    * The IP address that was leased.
    */
   ipv4: string
+
+  /**
+   * The MAC address of the device that was leased the IP address.
+   */
+  mac: string
+
+  /**
+   * The type of the lease (either Dynamic or Static).
+   */
+  type: LeaseType
+
+  /**
+   * The zone in which the lease was made.
+   */
+  zoneKey: string
 }
 
 /**
@@ -19,9 +39,8 @@ export interface Lease {
 export abstract class Provider {
   /**
    * Fetch the leases for a given zone.
-   * @param zoneKey Unique identifier for the zone supplied in the configuration.
    */
-  abstract getLeases (zoneKey: string): Promise<Lease[]>
+  abstract getLeases (): Promise<Lease[]>
 
   /**
    * Initialize the provider.
