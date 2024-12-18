@@ -1,7 +1,11 @@
+import { createLogger } from '@/common/logger'
 import { resolve } from 'path'
 import { z } from 'zod'
+import { fromError } from 'zod-validation-error'
 
 import { type Zone, ZoneType } from './interface'
+
+const log = createLogger('zone-parser')
 
 /**
  * Declare a RecordName type with simple sanity check
@@ -22,8 +26,6 @@ export const CommaSeparatedRecordNames = z
   .transform(value => value.split(',').filter(v => v.length > 0))
   .pipe(RecordName.array())
 
-const OUT_DIR_PATH = z.string().parse(process.env['OUT_DIR'])
-
 /**
  * Parse zone configuration from environment variables
  * @param key Zone identifier
@@ -32,6 +34,7 @@ const OUT_DIR_PATH = z.string().parse(process.env['OUT_DIR'])
  */
 function parseZoneConfiguration (key: string): Zone {
   const shape: Record<string, any> = {}
+  shape['OUT_DIR'] = z.string()
   shape[`ZONE_${key}_IFACE`] = z.string()
   shape[`ZONE_${key}_DOMAIN`] = RecordName
   shape[`ZONE_${key}_SOA_PRIMARY`] = RecordName
@@ -39,9 +42,14 @@ function parseZoneConfiguration (key: string): Zone {
   shape[`ZONE_${key}_NS`] = CommaSeparatedRecordNames
   shape[`ZONE_${key}_TYPE`] = z.nativeEnum(ZoneType)
 
-  const result = z.object(shape).parse(process.env)
+  const { data: result, error } = z.object(shape).safeParse(process.env)
+  if (error) {
+    log.error('Failed to parse zone configuration for "%s": %s', key, fromError(error))
+    process.exit(1)
+  }
+
   const outFile = resolve(
-    OUT_DIR_PATH,
+    result['OUT_DIR'],
     `db.${result[`ZONE_${key}_DOMAIN`].replace(/\.$/, '')}` // Remove trailing dot
   )
 

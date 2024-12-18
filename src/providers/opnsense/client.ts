@@ -1,7 +1,11 @@
+import { createLogger } from '@/common/logger'
 import ky, { type KyInstance } from 'ky'
 import { z } from 'zod'
+import { fromError } from 'zod-validation-error'
 
 import { type Dhcpv4SearchLeaseResponse } from './interface'
+
+const log = createLogger('opnsense')
 
 const configSchema = z.object({
   OPNSENSE_API_KEY: z.string(),
@@ -17,7 +21,14 @@ export class OpnsenseApiClient {
   private config: z.infer<typeof configSchema>
 
   constructor () {
-    this.config = configSchema.parse(process.env)
+    const { data: config, error } = configSchema.safeParse(process.env)
+    if (error) {
+      log.error('Failed to parse configuration: %s', fromError(error))
+      process.exit(1)
+    }
+
+    this.config = config
+
     const credentials = Buffer
       .from(`${this.config.OPNSENSE_API_KEY}:${this.config.OPNSENSE_API_SECRET}`, 'utf8')
       .toString('base64')
