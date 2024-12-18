@@ -6,11 +6,15 @@ services:
     # Restart container on boot or in case of failure
     restart: always
 
-    # Mount the zones directory to persist data
-    # If you run as non-root user (see directive below), make sure the directory is writable.
-    # To adjust permissions, run `chown -R 1000:1000 /srv/dns/zones`
+    # Mounts
     volumes:
+      # Zonefiles directory
+      # If you run as non-root user (see directive below), make sure the directory is writable.
+      # To adjust permissions, run `chown -R 1000:1000 /srv/dns/zones`
       - /srv/dns/zones:/data
+
+      # Supply your own CA certificate for OPNsense
+      - /etc/ssl/my-ca.pem:/etc/ssl/my-ca.pem:ro
 
     # Run as non-root user
     user: 1000:1000
@@ -19,6 +23,13 @@ services:
     environment:
       # Refresh leases every minute
       - REFRESH_INTERVAL=60
+
+      # If your OPNsense uses a self-signed certificate, you need to either:
+      # ... provide your own CA certificate we mounted above
+      - NODE_EXTRA_CA_CERTS=/etc/ssl/my-ca.pem
+
+      # ... or disable certificate validation (avoid this if possible)
+      # - NODE_TLS_REJECT_UNAUTHORIZED=0
 
       # OPNsense API
       - OPNSENSE_URL=https://opnsense.local:8443/api
