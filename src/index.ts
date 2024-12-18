@@ -1,4 +1,5 @@
 import { createLogger } from './common/logger'
+import { Healthchecks } from './healthchecks'
 import { parseZoneConfigurations } from './parser'
 import { OpnsenseProvider } from './providers/opnsense'
 import { Zonefile } from './zonefile'
@@ -14,6 +15,9 @@ await provider.init()
 const zones = parseZoneConfigurations()
 log.info('@bksp/hibiscus version: %s', process.env['npm_package_version'] ?? 'unknown')
 log.info('Loaded zones: %O', zones.map(z => z.key))
+
+// Reporter
+const healthchecks = new Healthchecks()
 
 /**
  * Main execution function
@@ -61,10 +65,10 @@ if (process.env['REFRESH_INTERVAL']) {
     if (lock) { return }
     lock = true
 
-    execute().finally(() => { lock = false })
+    healthchecks.with(execute()).then(() => { lock = false })
   }, interval * 1000)
 } else {
   // Run once and exit
   log.info('No REFRESH_INTERVAL set, performing a one-shot run')
-  await execute()
+  await healthchecks.with(execute())
 }
