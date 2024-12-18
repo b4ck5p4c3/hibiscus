@@ -1,0 +1,14 @@
+name: Test
+on:
+  push
+
+jobs:
+  test:
+    name: Perform checks
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+      - uses: oven-sh/setup-bun@v2
+      - run: bun lint
+      - run: bun test
+      - run: bun run typecheck
