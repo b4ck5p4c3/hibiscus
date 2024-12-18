@@ -98,7 +98,7 @@ function parseZoneConfiguration (outDir: string, key: string): Zone {
     domain: result[`ZONE_${key}_DOMAIN`],
     interface: result[`ZONE_${key}_IFACE`],
     key,
-    outFile: resolve(outDir, `db.${result[`ZONE_${key}_PREFIX`].replace(/\.$/, '')}.in-addr.arpa`),
+    outFile: resolve(outDir, `db.${result[`ZONE_${key}_PREFIX`].replace(/\.$/, '').split('.').reverse().join('.')}.in-addr.arpa`),
     ptrSubnet: result[`ZONE_${key}_PREFIX`],
     soa: {
       nameServers: result[`ZONE_${key}_NS`],
