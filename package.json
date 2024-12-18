@@ -19,6 +19,7 @@
     "dev": "bun run src/index.ts | pino-pretty",
     "test": "tsc --noEmit",
     "start": "bun run src/index.ts",
+    "build": "bun build --compile --minify --sourcemap ./src/index.ts --outfile ./dist/hibiscus",
     "postinstall": "husky"
   },
   "dependencies": {
