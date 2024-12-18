@@ -43,7 +43,7 @@ function parseZoneConfiguration (outDir: string, key: string): Zone {
   shape[`ZONE_${key}_SOA_RESPONSIBLE`] = RecordName
   shape[`ZONE_${key}_NS`] = CommaSeparatedRecordNames
   shape[`ZONE_${key}_TYPE`] = z.nativeEnum(ZoneType).default(ZoneType.Default)
-  shape[`ZONE_${key}_STATIC_ONLY`] = z.string().transform<boolean>(s => s === 'true')
+  shape[`ZONE_${key}_STATIC_ONLY`] = z.string().optional().transform<boolean>(s => s === 'true')
   shape['RECORD_TTL'] = z.coerce.number().default(300)
 
   // Parse zone type to determine what other fields are required
