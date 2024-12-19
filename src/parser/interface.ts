@@ -33,6 +33,11 @@ export interface AbstractZone {
   key: string;
 
   /**
+   * Zone file origin
+   */
+  origin: string;
+
+  /**
    * Path to the output file for this zone.
    */
   outFile: string;

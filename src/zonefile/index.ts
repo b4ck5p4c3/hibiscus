@@ -85,11 +85,13 @@ export class Zonefile {
    * @param index Map of Leases indexed by IP address
    */
   private addPtrRecords (index: Map<string, LeaseWithHostname[]>): void {
+    const prefix = (this.zone as ReverseZone).ptrSubnet
+
     for (const [, leases] of index) {
       const lease = Zonefile.resolveLeases(leases)
       if (lease) {
         this.records.push({
-          name: `${lease.ipv4.split('.').reverse().join('.')}.`,
+          name: `${lease.ipv4.replace(prefix, '').split('.').reverse().join('.')}`,
           type: 'PTR',
           value: `${lease.hostname}.${this.zone.domain}`,
         })
@@ -185,7 +187,7 @@ export class Zonefile {
     // @todo: this is suboptimal to render every time, but there is some bug
     // with Bun bundling and Eta rendering. Will investigate later.
     return eta.renderString(templateBody, {
-      domain: this.zone.domain,
+      domain: this.zone.origin,
       records: this.records.map(r => ({
         ...r,
         name: r.name.padEnd(longestNameLength),

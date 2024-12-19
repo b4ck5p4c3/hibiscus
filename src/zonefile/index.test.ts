@@ -8,6 +8,7 @@ const ZONE_TEMPLATE: AbstractZone = {
   domain: 'example.com.',
   interface: 'internal',
   key: 'INT',
+  origin: 'example.com',
   outFile: '/tmp/zonefile',
   soa: {
     nameServers: ['ns1.example.com.'],
@@ -38,20 +39,20 @@ describe('Zonefile', () => {
     const zonefile = new Zonefile(zone)
 
     zonefile.setLeases([
-      { hostname: 'server1', interface: 'internal', ipv4: '10.20.30.40', mac: 'AA:BB:CC:DD:EE:FF', type: LeaseType.Static },
+      { hostname: 'server1', interface: 'internal', ipv4: '10.0.0.1', mac: 'AA:BB:CC:DD:EE:FF', type: LeaseType.Static },
     ])
 
     const contents = zonefile.toString('1000223344')
     expect(contents).toContain('@   IN  SOA   ns1.example.com. hostmaster.example.com.')
     expect(contents).toContain('1000223344  ; Serial')
-    expect(contents).toContain('server1            IN  A  10.20.30.40')
-    expect(contents).toContain('aa-bb-cc-dd-ee-ff  IN  A  10.20.30.40')
+    expect(contents).toContain('server1            IN  A  10.0.0.1')
+    expect(contents).toContain('aa-bb-cc-dd-ee-ff  IN  A  10.0.0.1')
   })
 
   test('PTR', () => {
     const zone: ReverseZone = {
       ...structuredClone(ZONE_TEMPLATE),
-      ptrSubnet: '10.0.0',
+      ptrSubnet: '10.0.',
       type: ZoneType.RDNS,
     }
 
@@ -62,10 +63,7 @@ describe('Zonefile', () => {
       { hostname: 'server3', interface: 'internal', ipv4: '172.16.0.1', mac: '00:11:22:33:44:53', type: LeaseType.Dynamic },
     ])
 
-    const contents = zonefile.toString('1000223344')
-    expect(contents).toContain('1.0.0.10.')
-    expect(contents).toContain('4.0.0.10.')
-    expect(contents).not.toContain('1.0.16.172.')
+    expect(zonefile.records.map(r => r.name)).toEqual(['1.0', '4.0'])
   })
 
   describe('ambiguity resolver', () => {
