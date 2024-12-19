@@ -77,12 +77,13 @@ function parseZoneConfiguration (outDir: string, key: string): Zone {
   }
 
   if (zoneType === ZoneType.Default) {
+    const fqdn = result[`ZONE_${key}_DOMAIN`].replace(/\.$/, '')
     return {
       domain: result[`ZONE_${key}_DOMAIN`],
       interface: result[`ZONE_${key}_IFACE`],
       key,
-      origin: result[`ZONE_${key}_DOMAIN`].replace(/\.$/, ''),
-      outFile: resolve(outDir, `db.${result[`ZONE_${key}_DOMAIN`].replace(/\.$/, '')}`),
+      origin: `${fqdn}.`,
+      outFile: resolve(outDir, `db.${fqdn}`),
       records: result[`ZONE_${key}_INCLUDE`],
       soa: {
         nameServers: result[`ZONE_${key}_NS`],
@@ -95,13 +96,13 @@ function parseZoneConfiguration (outDir: string, key: string): Zone {
     } satisfies DefaultZone
   }
 
-  const origin = result[`ZONE_${key}_PREFIX`].replace(/\.$/, '').split('.').reverse().join('.').concat('.in-addr.arpa')
+  const fqdn = result[`ZONE_${key}_PREFIX`].replace(/\.$/, '').split('.').reverse().join('.').concat('.in-addr.arpa')
   return {
     domain: result[`ZONE_${key}_DOMAIN`],
     interface: result[`ZONE_${key}_IFACE`],
     key,
-    origin,
-    outFile: resolve(outDir, `db.${origin}`),
+    origin: `${fqdn}.`,
+    outFile: resolve(outDir, `db.${fqdn}`),
     ptrSubnet: result[`ZONE_${key}_PREFIX`],
     soa: {
       nameServers: result[`ZONE_${key}_NS`],
