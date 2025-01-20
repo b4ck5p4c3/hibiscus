@@ -1,8 +1,15 @@
+export const DefaultPriority = 0
+
 export interface ZoneRecord {
   /**
    * Record name
    */
   name: string
+
+  /**
+   * Record priority to determine which record to keep in case of conflicts
+   */
+  priority: number
 
   /**
    * Record type

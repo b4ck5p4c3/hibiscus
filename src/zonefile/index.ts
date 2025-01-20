@@ -2,7 +2,8 @@ import { type ReverseZone, type Zone, ZoneType } from '@/parser/interface'
 import { type Lease, LeaseType, type LeaseWithHostname } from '@/providers/interface'
 import { Eta } from 'eta'
 
-import { ZoneCommitStatus, type ZoneRecord } from './interface'
+import { DefaultPriority, ZoneCommitStatus } from './interface'
+import { ZoneRecordMap } from './records-map'
 import templateBody from './template.eta'
 
 const eta = new Eta()
@@ -11,7 +12,7 @@ export class Zonefile {
   /**
    * Zone records
    */
-  public readonly records: ZoneRecord[] = []
+  public readonly records = new ZoneRecordMap()
 
   /**
    * Initialize a new Zonefile provider
@@ -58,8 +59,9 @@ export class Zonefile {
     for (const [hostname, leases] of index) {
       const lease = Zonefile.resolveLeases(leases)
       if (lease) {
-        this.records.push({
+        this.records.add({
           name: hostname,
+          priority: DefaultPriority,
           type: 'A',
           value: lease.ipv4,
         })
@@ -77,8 +79,9 @@ export class Zonefile {
     for (const [mac, input] of index) {
       const staticLeases = input.filter(lease => lease.type === LeaseType.Static)
       for (const lease of staticLeases.length > 0 ? staticLeases : input) {
-        this.records.push({
+        this.records.add({
           name: mac.toLowerCase().replaceAll(':', '-'),
+          priority: 10,
           type: 'A',
           value: lease.ipv4,
         })
@@ -96,8 +99,9 @@ export class Zonefile {
     for (const [, leases] of index) {
       const lease = Zonefile.resolveLeases(leases)
       if (lease) {
-        this.records.push({
+        this.records.add({
           name: `${lease.ipv4.replace(prefix, '').split('.').reverse().join('.')}`,
+          priority: DefaultPriority,
           type: 'PTR',
           value: `${lease.hostname}.${this.zone.domain}`,
         })
@@ -153,8 +157,7 @@ export class Zonefile {
    * @param input Leases to set
    */
   setLeases (input: Lease[]) {
-    // Clear records array
-    this.records.length = 0
+    this.records.clear()
 
     const leases = this.zone.staticOnly
       ? input.filter(l => l.type === LeaseType.Static)
@@ -188,13 +191,14 @@ export class Zonefile {
    * @returns Zonefile content
    */
   toString (serial: string): string {
-    const longestNameLength = Math.max(...this.records.map(r => r.name.length))
+    const records = this.records.toArray()
+    const longestNameLength = Math.max(...records.map(r => r.name.length))
 
     // @todo: this is suboptimal to render every time, but there is some bug
     // with Bun bundling and Eta rendering. Will investigate later.
     return eta.renderString(templateBody, {
       domain: this.zone.origin,
-      records: this.records.map(r => ({
+      records: records.map(r => ({
         ...r,
         name: r.name.padEnd(longestNameLength),
       })),
