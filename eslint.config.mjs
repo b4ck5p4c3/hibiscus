@@ -1,2 +1,4 @@
-import node from '@bksp/style-guide/eslint/node'
-export default node
+/**
+ * @type {import('eslint').Linter.Config}
+ */
+export { default } from '@bksp/style-guide/eslint/node'
