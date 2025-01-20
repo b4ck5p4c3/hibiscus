@@ -40,7 +40,7 @@ export class Healthchecks {
       method: 'POST'
     })
       .then(() => this.log.debug('report sent'))
-      .catch((e: unknown) => this.log.error('failed to report: %O', e))
+      .catch((error: unknown) => this.log.error('failed to report: %O', error))
   }
 
   /**
@@ -53,27 +53,29 @@ export class Healthchecks {
 
     return fetch(`${this.endpoint}/start`, { method: 'POST' })
       .then(() => this.log.debug('start report sent'))
-      .catch((e: unknown) => this.log.error('failed to report start: %O', e))
+      .catch((error: unknown) => this.log.error('failed to report start: %O', error))
   }
 
   /**
-   * Wraps a Promise with healthcheck reporting
-   * @param fn - promise to wrap
-   * @returns the result of the function
+   * Creates higher-order function to wrap a task with start and end reports
+   * @param task - function to wrap
+   * @returns wrapped function
    */
-  public async with<T> (fn: Promise<T>): Promise<T> {
+  with<T, D> (task: (...taskArguments: D[]) => Promise<T>): (...taskArguments: D[]) => Promise<T> {
     if (!this.endpoint) {
-      return fn
+      return () => task()
     }
 
-    await this.start()
-    try {
-      const result = await fn
-      await this.end()
-      return result
-    } catch (e: unknown) {
-      await this.end(false, e instanceof Error ? e.stack : String(e))
-      throw e
+    return async (...taskArguments) => {
+      await this.start()
+      try {
+        const result = await task(...taskArguments)
+        await this.end()
+        return result
+      } catch (error: unknown) {
+        await this.end(false, error instanceof Error ? error.stack : String(error))
+        throw error
+      }
     }
   }
 }

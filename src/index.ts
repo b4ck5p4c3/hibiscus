@@ -43,6 +43,9 @@ async function execute (): Promise<void> {
   await Promise.all(promises)
 }
 
+// Create higher-order function to wrap the execution with healthchecks
+const executer = healthchecks.with(execute)
+
 // Exit immediately if no zones are configured
 if (zones.length === 0) {
   log.error('No zones configured, exiting')
@@ -64,10 +67,10 @@ if (process.env['REFRESH_INTERVAL']) {
     if (lock) { return }
     lock = true
 
-    healthchecks.with(execute()).then(() => { lock = false })
+    executer().then(() => { lock = false })
   }, interval * 1000)
 } else {
   // Run once and exit
   log.info('No REFRESH_INTERVAL set, performing a one-shot run')
-  await healthchecks.with(execute())
+  await executer()
 }

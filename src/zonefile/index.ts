@@ -35,13 +35,19 @@ export class Zonefile {
    * @returns Selected lease or null
    */
   private static resolveLeases (leases: Lease[]): Lease | null {
+    // If no leases available, return null
     if (leases.length === 0) return null
-    if (leases.length === 1) return leases[0]!
 
+    // If only one lease available, return it
+    if (leases.length === 1) return leases[0] as Lease
+
+    // If more than one lease available, filter only static leases
     const staticLeases = leases.filter(lease => lease.type === LeaseType.Static)
-    if (staticLeases.length === 1) return staticLeases[0]!
 
-    return null
+    // If there is no OR more than one static lease, return null
+    if (staticLeases.length !== 1) return null
+
+    return staticLeases[0] as Lease
   }
 
   /**
@@ -70,7 +76,7 @@ export class Zonefile {
     // But if one of leases is static, we record only static ones
     for (const [mac, input] of index) {
       const staticLeases = input.filter(lease => lease.type === LeaseType.Static)
-      for (const lease of staticLeases.length ? staticLeases : input) {
+      for (const lease of staticLeases.length > 0 ? staticLeases : input) {
         this.records.push({
           name: mac.toLowerCase().replaceAll(':', '-'),
           type: 'A',
@@ -109,9 +115,9 @@ export class Zonefile {
     const index = new Map<T[K], T[]>()
     for (const lease of leases) {
       const key = lease[indexKey]
-      const arr = index.get(key) ?? [] as T[]
-      arr.push(lease)
-      index.set(key, arr)
+      const array = index.get(key) ?? [] as T[]
+      array.push(lease)
+      index.set(key, array)
     }
 
     return index
