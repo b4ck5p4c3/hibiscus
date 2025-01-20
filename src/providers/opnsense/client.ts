@@ -3,7 +3,7 @@ import ky, { type KyInstance } from 'ky'
 import { z } from 'zod'
 import { fromError } from 'zod-validation-error'
 
-import { type Dhcpv4SearchLeaseResponse } from './interface'
+import { type Dhcpv4SearchLeaseResponse, Dhcpv4SearchLeaseResponseSchema } from './interface'
 
 const log = createLogger('opnsense')
 
@@ -43,11 +43,11 @@ export class OpnsenseApiClient {
   }
 
   async checkCredentials (): Promise<void> {
-    const res = await this.client.get('dhcpv4/leases/searchLease')
+    const response = await this.client.get('dhcpv4/leases/searchLease')
 
     // Why checking for Content-Type? Well, the API returns a 200 status code even if the credentials are invalid.
     // Most obvious way to check if the credentials are valid is to check if the response is JSON.
-    if (!res.ok || !res.headers.get('content-type')?.includes('application/json')) {
+    if (!response.ok || !response.headers.get('content-type')?.includes('application/json')) {
       throw new Error('Failed to verify Opnsense credentials')
     }
   }
@@ -55,6 +55,7 @@ export class OpnsenseApiClient {
   async getLeases (): Promise<Dhcpv4SearchLeaseResponse> {
     return this.client
       .get('dhcpv4/leases/searchLease')
-      .json<Dhcpv4SearchLeaseResponse>()
+      .json()
+      .then(response => Dhcpv4SearchLeaseResponseSchema.parse(response))
   }
 }
