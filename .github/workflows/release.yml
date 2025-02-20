@@ -30,7 +30,7 @@ jobs:
           images: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}
           # @todo: elaborate on a better approach to versioning
           tags: |
-            type=raw,value=16
+            type=raw,value=1
             type=raw,value=latest
 
       - name: Set up Docker Buildx
