@@ -1,7 +1,6 @@
 services:
   hibiscus:
-    # Build from Dockerfile as we don't provide pre-built images
-    build: https://github.com/b4ck5p4c3/hibiscus.git
+    image: ghcr.io/b4ck5p4c3/hibiscus:latest
 
     # Restart container on boot or in case of failure
     restart: always
