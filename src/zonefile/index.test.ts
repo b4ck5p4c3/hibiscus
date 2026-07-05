@@ -1,6 +1,7 @@
+import { describe, expect, test } from 'bun:test'
+
 import { type AbstractZone, type DefaultZone, type ReverseZone, ZoneType } from '@/parser/interface'
 import { LeaseType } from '@/providers/interface'
-import { describe, expect, test } from 'bun:test'
 
 import { Zonefile } from '.'
 
@@ -17,7 +18,7 @@ const ZONE_TEMPLATE: AbstractZone = {
   },
   staticOnly: false,
   ttl: 300,
-  type: ZoneType.Default as ZoneType,
+  type: ZoneType.Default,
 }
 
 describe('Zonefile', () => {
@@ -63,7 +64,7 @@ describe('Zonefile', () => {
       { hostname: 'server3', interface: 'internal', ipv4: '172.16.0.1', mac: '00:11:22:33:44:53', type: LeaseType.Dynamic },
     ])
 
-    expect(zonefile.records.toArray().map(r => r.name)).toEqual(['1.0', '4.0'])
+    expect(zonefile.records.getArray().map(r => r.name)).toEqual(['1.0', '4.0'])
   })
 
   describe('ambiguity resolver', () => {
@@ -83,7 +84,7 @@ describe('Zonefile', () => {
         { hostname: 'server1', interface: 'internal', ipv4: '10.0.0.2', mac: 'AA:BB:CC:DD:EE:FF', type: LeaseType.Dynamic },
       ])
 
-      expect(zonefile.records.toArray().map(r => r.value)).toEqual(['10.0.0.1', '10.0.0.1'])
+      expect(zonefile.records.getArray().map(r => r.value)).toEqual(['10.0.0.1', '10.0.0.1'])
     })
 
     test('skips ambiguous hostnames', () => {
@@ -102,7 +103,7 @@ describe('Zonefile', () => {
         { hostname: 'server1', interface: 'internal', ipv4: '10.0.0.2', mac: 'AA:BB:CC:DD:EE:FF', type: LeaseType.Dynamic },
       ])
 
-      expect(zonefile.records.toArray()).toHaveLength(0)
+      expect(zonefile.records.getArray()).toHaveLength(0)
     })
 
     test('resolves ambiguous leases for a single MAC', () => {
@@ -122,7 +123,7 @@ describe('Zonefile', () => {
         { hostname: 'server1', interface: 'internal', ipv4: '10.0.0.3', mac: 'AA:BB:CC:DD:EE:FF', type: LeaseType.Dynamic },
       ])
 
-      expect(zonefile.records.toArray().map(r => r.value)).not.toContain('10.0.0.3')
+      expect(zonefile.records.getArray().map(r => r.value)).not.toContain('10.0.0.3')
     })
 
     test('resolves ambiguous leases for a single hostname', () => {
@@ -142,14 +143,14 @@ describe('Zonefile', () => {
         { hostname: 'server1', interface: 'internal', ipv4: '10.0.0.2', mac: 'AA:BB:CC:DD:EE:F2', type: LeaseType.Static },
         { hostname: 'server1', interface: 'internal', ipv4: '10.0.0.3', mac: 'AA:BB:CC:DD:EE:F2', type: LeaseType.Dynamic },
       ])
-      expect(zonefile.records.toArray()).toHaveLength(0)
+      expect(zonefile.records.getArray()).toHaveLength(0)
 
       // Multiple dynamic leases should be ignored
       zonefile.setLeases([
         { hostname: 'server1', interface: 'internal', ipv4: '10.0.0.1', mac: 'AA:BB:CC:DD:EE:F1', type: LeaseType.Dynamic },
         { hostname: 'server1', interface: 'internal', ipv4: '10.0.0.2', mac: 'AA:BB:CC:DD:EE:F2', type: LeaseType.Dynamic },
       ])
-      expect(zonefile.records.toArray()).toHaveLength(0)
+      expect(zonefile.records.getArray()).toHaveLength(0)
     })
 
     test('resolves MAC over hostname priority', () => {
@@ -169,7 +170,7 @@ describe('Zonefile', () => {
         { hostname: 'aa-bb-cc-dd-ee-f1', interface: 'internal', ipv4: '10.0.0.2', mac: 'AA:BB:CC:DD:EE:F2', type: LeaseType.Static }
       ])
 
-      const records = zonefile.records.toArray()
+      const records = zonefile.records.getArray()
       expect(records).toHaveLength(3)
       expect(records.find(r => r.name === 'aa-bb-cc-dd-ee-f1')?.value).toBe('10.0.0.1')
     })

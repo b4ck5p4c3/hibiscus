@@ -1,6 +1,9 @@
+import type { ErrorLike } from 'bun'
+
+import { Eta } from 'eta'
+
 import { type ReverseZone, type Zone, ZoneType } from '@/parser/interface'
 import { type Lease, LeaseType, type LeaseWithHostname } from '@/providers/interface'
-import { Eta } from 'eta'
 
 import { DefaultPriority, ZoneCommitStatus } from './interface'
 import { ZoneRecordMap } from './records-map'
@@ -27,7 +30,7 @@ export class Zonefile {
    * @returns Updated zonefile
    */
   private static replaceSerial (contents: string, serial: string): string {
-    return contents.replace(/(\d+)\s+;\s+Serial/, `${serial}  ; Serial`)
+    return contents.replace(/(\d+)\s+;\s+Serial/, () => `${serial}  ; Serial`)
   }
 
   /**
@@ -52,82 +55,6 @@ export class Zonefile {
   }
 
   /**
-   * Parses hostnames into records referencing the IP address
-   * @param index Map of Leases indexed by hostname
-   */
-  private addHostnameRecords (index: Map<string, Lease[]>): void {
-    for (const [hostname, leases] of index) {
-      const lease = Zonefile.resolveLeases(leases)
-      if (lease) {
-        this.records.add({
-          name: hostname,
-          priority: DefaultPriority,
-          type: 'A',
-          value: lease.ipv4,
-        })
-      }
-    }
-  }
-
-  /**
-   * Parses MAC addresses into records referencing the IP address
-   * @param index Map of Leases indexed by MAC address
-   */
-  private addMacRecords (index: Map<string, Lease[]>): void {
-    // We allow one MAC address to have multiple IP addresses
-    // But if one of leases is static, we record only static ones
-    for (const [mac, input] of index) {
-      const staticLeases = input.filter(lease => lease.type === LeaseType.Static)
-      for (const lease of staticLeases.length > 0 ? staticLeases : input) {
-        this.records.add({
-          name: mac.toLowerCase().replaceAll(':', '-'),
-          priority: 10,
-          type: 'A',
-          value: lease.ipv4,
-        })
-      }
-    }
-  }
-
-  /**
-   * Parses leases into PTR records for this zonefile
-   * @param index Map of Leases indexed by IP address
-   */
-  private addPtrRecords (index: Map<string, LeaseWithHostname[]>): void {
-    const prefix = (this.zone as ReverseZone).ptrSubnet
-
-    for (const [, leases] of index) {
-      const lease = Zonefile.resolveLeases(leases)
-      if (lease) {
-        this.records.add({
-          name: `${lease.ipv4.replace(prefix, '').split('.').reverse().join('.')}`,
-          priority: DefaultPriority,
-          type: 'PTR',
-          value: `${lease.hostname}.${this.zone.domain}`,
-        })
-      }
-    }
-  }
-
-  /**
-   * Indexes leases by a specific key
-   * @param leases - Leases to index
-   * @param indexKey - Key to index by
-   * @returns Indexed map
-   */
-  private index<K extends keyof T, T = Lease> (leases: T[], indexKey: K): Map<T[K], T[]> {
-    const index = new Map<T[K], T[]>()
-    for (const lease of leases) {
-      const key = lease[indexKey]
-      const array = index.get(key) ?? [] as T[]
-      array.push(lease)
-      index.set(key, array)
-    }
-
-    return index
-  }
-
-  /**
    * Commit the zonefile to the filesystem
    * @returns Commit status
    */
@@ -135,7 +62,14 @@ export class Zonefile {
     const serial = Math.floor(Date.now() / 1000).toString()
     const newContents = this.toString(serial)
 
-    const existingContents = await Bun.file(this.zone.outFile).text().catch(() => null)
+    let existingContents: null | string = null
+    try {
+      existingContents = await Bun.file(this.zone.outFile).text()
+    } catch (error: unknown) {
+      if ((error as ErrorLike).code === 'ENOENT') {
+        throw error
+      }
+    }
 
     // Write file if it doesn't exist
     if (!existingContents) {
@@ -191,7 +125,7 @@ export class Zonefile {
    * @returns Zonefile content
    */
   toString (serial: string): string {
-    const records = this.records.toArray()
+    const records = this.records.getArray()
     const longestNameLength = Math.max(...records.map(r => r.name.length))
 
     // @todo: this is suboptimal to render every time, but there is some bug
@@ -205,5 +139,83 @@ export class Zonefile {
       serial,
       soa: this.zone.soa,
     })
+  }
+
+  /**
+   * Parses hostnames into records referencing the IP address
+   * @param index Map of Leases indexed by hostname
+   */
+  private addHostnameRecords (index: Map<string, Lease[]>): void {
+    for (const [hostname, leases] of index) {
+      const lease = Zonefile.resolveLeases(leases)
+      if (lease) {
+        this.records.add({
+          name: hostname,
+          priority: DefaultPriority,
+          type: 'A',
+          value: lease.ipv4,
+        })
+      }
+    }
+  }
+
+  /**
+   * Parses MAC addresses into records referencing the IP address
+   * @param index Map of Leases indexed by MAC address
+   */
+  private addMacRecords (index: Map<string, Lease[]>): void {
+    // We allow one MAC address to have multiple IP addresses
+    // But if one of leases is static, we record only static ones
+    for (const [mac, input] of index) {
+      const staticLeases = input.filter(lease => lease.type === LeaseType.Static)
+      const leases = staticLeases.length > 0 ? staticLeases : input
+
+      for (const lease of leases) {
+        this.records.add({
+          name: mac.toLowerCase().replaceAll(':', '-'),
+          priority: 10,
+          type: 'A',
+          value: lease.ipv4,
+        })
+      }
+    }
+  }
+
+  /**
+   * Parses leases into PTR records for this zonefile
+   * @param index Map of Leases indexed by IP address
+   */
+  private addPtrRecords (index: Map<string, LeaseWithHostname[]>): void {
+    const prefix = (this.zone as ReverseZone).ptrSubnet
+
+    for (const [, leases] of index) {
+      const lease = Zonefile.resolveLeases(leases)
+      if (lease) {
+        this.records.add({
+          name: lease.ipv4.replace(prefix, '').split('.').toReversed().join('.'),
+          priority: DefaultPriority,
+          type: 'PTR',
+          value: `${lease.hostname}.${this.zone.domain}`,
+        })
+      }
+    }
+  }
+
+  /**
+   * Indexes leases by a specific key
+   * @param leases - Leases to index
+   * @param indexKey - Key to index by
+   * @returns Indexed map
+   */
+  private index<K extends keyof T, T = Lease> (leases: T[], indexKey: K): Map<T[K], T[]> {
+    const index = new Map<T[K], T[]>()
+    for (const lease of leases) {
+      const key = lease[indexKey]
+      const array = index.get(key) ?? [] as T[]
+      array.push(lease)
+      index.set(key, array)
+    }
+
+    return index
   }
 }

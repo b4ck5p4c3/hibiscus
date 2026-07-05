@@ -1,7 +1,8 @@
-import { createLogger } from '@/common/logger'
 import ky, { type KyInstance } from 'ky'
 import { z } from 'zod'
 import { fromError } from 'zod-validation-error'
+
+import { createLogger } from '@/common/logger'
 
 import { type Dhcpv4SearchLeaseResponse, Dhcpv4SearchLeaseResponseSchema } from './interface'
 
@@ -11,7 +12,6 @@ const configSchema = z.object({
   OPNSENSE_API_KEY: z.string(),
   OPNSENSE_API_SECRET: z.string(),
   OPNSENSE_URL: z
-    .string()
     .url()
     .transform(url => url.replace(/\/$/, '')) // Remove trailing slash
 })
@@ -28,17 +28,16 @@ export class OpnsenseApiClient {
     }
 
     this.config = config
-
-    const credentials = Buffer
-      .from(`${this.config.OPNSENSE_API_KEY}:${this.config.OPNSENSE_API_SECRET}`, 'utf8')
-      .toString('base64')
+    const credentials = new TextEncoder()
+      .encode(`${this.config.OPNSENSE_API_KEY}:${this.config.OPNSENSE_API_SECRET}`)
+      .toBase64()
 
     this.client = ky.create({
+      baseUrl: this.config.OPNSENSE_URL,
       headers: {
         Accept: 'application/json',
         Authorization: `Basic ${credentials}`,
       },
-      prefixUrl: this.config.OPNSENSE_URL
     })
   }
 
@@ -53,9 +52,7 @@ export class OpnsenseApiClient {
   }
 
   async getLeases (): Promise<Dhcpv4SearchLeaseResponse> {
-    return this.client
-      .get('dhcpv4/leases/searchLease')
-      .json()
-      .then(response => Dhcpv4SearchLeaseResponseSchema.parse(response))
+    const response = await this.client.get('dhcpv4/leases/searchLease').json()
+    return Dhcpv4SearchLeaseResponseSchema.parse(response)
   }
 }

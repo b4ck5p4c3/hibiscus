@@ -124,4 +124,4 @@ export type Zone = DefaultZone | ReverseZone
 /**
  * Zone configuration indexed by the configuration key.
  */
-export type ZoneConfiguration = Map<Zone['key'], Zone>
+export type ZoneConfig = Map<Zone['key'], Zone>

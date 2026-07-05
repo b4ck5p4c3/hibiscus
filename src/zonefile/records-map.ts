@@ -38,7 +38,7 @@ export class ZoneRecordMap {
    * Retrives all records from the map
    * @returns Array of ZoneRecord objects
    */
-  public toArray (): ZoneRecord[] {
-    return [...this.records.values()]
+  public getArray (): ZoneRecord[] {
+    return this.records.values().toArray()
   }
 }

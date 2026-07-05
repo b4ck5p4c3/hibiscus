@@ -1,8 +1,8 @@
 import { createLogger } from '@/common/logger'
 
 export class Healthchecks {
-  private readonly log = createLogger('healthchecks')
   public readonly endpoint?: string
+  private readonly log = createLogger('healthchecks')
 
   constructor () {
     const endpoint = process.env['HEALTHCHECKS_URL']
@@ -24,23 +24,27 @@ export class Healthchecks {
 
   /**
    * Reports a task completion
-   * @param success - whether the task was successful or not
+   * @param isSucceed - whether the task was successful or not
    * @param body - optional body to send with the report
    */
-  public async end (success = true, body?: string | string[]): Promise<void> {
+  public async end (isSucceed = true, body?: string | string[]): Promise<void> {
     if (!this.endpoint) {
       return
     }
 
-    return fetch(`${this.endpoint}/${success ? '' : 'fail'}`, {
-      body: body ? (Array.isArray(body) ? body.join('\n') : body) : '',
-      headers: {
-        'Content-Type': 'text/plain'
-      },
-      method: 'POST'
-    })
-      .then(() => this.log.debug('report sent'))
-      .catch((error: unknown) => this.log.error('failed to report: %O', error))
+    try {
+      await fetch(`${this.endpoint}/${isSucceed ? '' : 'fail'}`, {
+        body: body ? (Array.isArray(body) ? body.join('\n') : body) : '',
+        headers: {
+          'Content-Type': 'text/plain'
+        },
+        method: 'POST'
+      })
+
+      this.log.debug('report sent')
+    } catch (error: unknown) {
+      this.log.error('failed to report: %O', error as Error)
+    }
   }
 
   /**
@@ -51,9 +55,12 @@ export class Healthchecks {
       return
     }
 
-    return fetch(`${this.endpoint}/start`, { method: 'POST' })
-      .then(() => this.log.debug('start report sent'))
-      .catch((error: unknown) => this.log.error('failed to report start: %O', error))
+    try {
+      await fetch(`${this.endpoint}/start`, { method: 'POST' })
+      this.log.debug('start report sent')
+    } catch (error: unknown) {
+      this.log.error('failed to report start: %O', error as Error)
+    }
   }
 
   /**

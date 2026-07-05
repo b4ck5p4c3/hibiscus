@@ -20,7 +20,7 @@ export enum OpnsenseLeaseType {
  * DHCP lease information.
  */
 export const OpnsenseLeaseSchema = z.object({
-  address: z.string().ip(),
+  address: z.ipv4(),
   binding: z.string().optional(),
   'client-hostname': z.string().optional(),
   cltt: z.number().optional(),
@@ -29,12 +29,12 @@ export const OpnsenseLeaseSchema = z.object({
   hostname: z.string().optional(),
   if: z.string().nonempty(),
   if_descr: z.string().nonempty(),
-  mac: z.string().regex(/^([0-9A-Fa-f]{2}[:-]){5}([0-9A-Fa-f]{2})$/),
+  mac: z.mac(),
   man: z.string().optional(),
   starts: z.string().optional(),
-  status: z.nativeEnum(OpnsenseLeaseStatus),
+  status: z.enum(OpnsenseLeaseStatus),
   tstp: z.number().optional(),
-  type: z.nativeEnum(OpnsenseLeaseType),
+  type: z.enum(OpnsenseLeaseType),
   uid: z.string().optional(),
 })
 
@@ -43,12 +43,12 @@ export const OpnsenseLeaseSchema = z.object({
  */
 export const Dhcpv4SearchLeaseResponseSchema = z.object({
   current: z.number(),
-  interfaces: z.record(z.string()),
+  interfaces: z.record(z.string(), z.any()),
   rowCount: z.number(),
   rows: z.preprocess((leases, context) => {
     if (!Array.isArray(leases)) {
       context.addIssue({
-        code: z.ZodIssueCode.invalid_type,
+        code: 'invalid_type',
         expected: 'array',
         fatal: true,
         received: typeof leases,
@@ -70,5 +70,5 @@ export const Dhcpv4SearchLeaseResponseSchema = z.object({
   total: z.number(),
 })
 
-export type OpnsenseLease = z.infer<typeof OpnsenseLeaseSchema>
 export type Dhcpv4SearchLeaseResponse = z.infer<typeof Dhcpv4SearchLeaseResponseSchema>
+export type OpnsenseLease = z.infer<typeof OpnsenseLeaseSchema>

@@ -62,12 +62,15 @@ if (process.env['REFRESH_INTERVAL']) {
 
   log.info('Running in daemon mode, refreshing each %d seconds', interval)
 
-  let lock = false
+  let isLock = false
   setInterval(() => {
-    if (lock) { return }
-    lock = true
+    void (async () => {
+      if (isLock) { return }
+      isLock = true
 
-    executer().then(() => { lock = false })
+      await executer()
+      isLock = false
+    })()
   }, interval * 1000)
 } else {
   // Run once and exit
