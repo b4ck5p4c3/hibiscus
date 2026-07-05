@@ -1,6 +1,7 @@
 services:
   hibiscus:
-    image: ghcr.io/b4ck5p4c3/hibiscus:latest
+    build:
+      context: https://github.com/b4ck5p4c3/hibiscus.git#main
 
     # Restart container on boot or in case of failure
     restart: always
